@@ -1,0 +1,56 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+name: (rev:R)
+
+trigger:
+ branches:
+  include:
+    - main
+    - feature/*
+
+stages:
+  - stage: CI
+    displayName: Continuous Integration
+    
+    jobs:
+      - job: Build
+        displayName: Build, Test, Pack
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - pwsh: |
+              Write-Host "##vso[task.setvariable variable=PackageVersion]1.0.$(Build.BuildNumber)"
+            displayName: 'Calculate PackageVersion'
+
+          - task: DotNetCoreCLI@2
+            displayName: 'dotnet pack'
+            inputs:
+              command: pack
+              versioningScheme: byEnvVar
+              versionEnvVar: PackageVersion
+              verbosityPack: Diagnostic
+          
+          - task: DotNetCoreCLI@2
+            displayName: 'dotnet push'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+              nuGetFeedType: 'internal'
+              publishVstsFeed: '0f18b7db-fb6c-46c5-b364-4584de3e42e4/624b3892-88df-430d-a184-f05c92de3644'
+  
+  - stage: CD
+    displayName: Continuous Deployment
+    dependsOn: CI
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
+    jobs:
+      - job: DeployQA
+        displayName: Deploy to QA env
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - pwsh: |
+              Write-Host "Deploying to QA environment..."
+            displayName: 'Deploy to QA env'
