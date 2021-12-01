@@ -62,6 +62,7 @@ stages:
         displayName: Deploy to QA env
         pool:
           vmImage: ubuntu-latest
+        environment: singlet-sample-app-QA
         strategy:
          runOnce:
            deploy:
