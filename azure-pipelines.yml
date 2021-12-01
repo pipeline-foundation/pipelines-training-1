@@ -19,25 +19,24 @@ stages:
         displayName: Build, Test, Pack
         pool:
           vmImage: ubuntu-latest
-        variables:
-          - group: SomeConstants
-          - name: MajorVersion
-            value: 1
-          - name: MinorVersion
-            value: 0
-          - name: PatchVersion
-            value: $(Build.BuildId)
-          - name: PackageVersion
-            value: $(MajorVersion).$(MinorVersion).$(PatchVersion)
         steps:
+
+          - task: gitversion/setup@0
+            displayName: Install GitVersion tool
+            inputs:
+              versionSpec: '5.x'
+
+          - task: gitversion/execute@0
+            displayName: Calculate appropriate SemVer
 
           - task: DotNetCoreCLI@2
             displayName: 'dotnet pack'
             inputs:
-              command: pack
-              versioningScheme: byEnvVar
-              versionEnvVar: PackageVersion
-              verbosityPack: Diagnostic
+              command: 'pack'
+              packagesToPack: '**/*.csproj'
+              versioningScheme: 'byEnvVar'
+              versionEnvVar: 'NuGetVersionV2'
+              verbosityPack: 'Diagnostic'
           
           - task: DotNetCoreCLI@2
             displayName: 'dotnet push'
