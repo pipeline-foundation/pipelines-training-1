@@ -3,7 +3,7 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-name: $(Build.BuildId)
+name: $(System.TeamProject)-$(Build.Repository.Name)-$(Build.SourceBranchName)-$(Build.BuildId)
 
 trigger:
  branches:
@@ -21,7 +21,7 @@ stages:
           vmImage: ubuntu-latest
         steps:
           - pwsh: |
-              Write-Host "##vso[task.setvariable variable=PackageVersion]1.0.$(Build.BuildNumber)"
+              Write-Host "##vso[task.setvariable variable=PackageVersion]1.0.$(Build.BuildId)"
             displayName: 'Calculate PackageVersion'
 
           - task: DotNetCoreCLI@2
