@@ -30,7 +30,7 @@ stages:
             displayName: Calculate appropriate SemVer
 
           - task: DotNetCoreCLI@2
-            displayName: 'dotnet pack'
+            displayName: 'Create NuGet pkg'
             inputs:
               command: 'pack'
               packagesToPack: '**/*.csproj'
@@ -46,7 +46,7 @@ stages:
               publishLocation: 'pipeline'
           
           - task: DotNetCoreCLI@2
-            displayName: 'dotnet push'
+            displayName: 'Publish NuGet to Internal feed'
             inputs:
               command: 'push'
               packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
@@ -56,7 +56,7 @@ stages:
   - stage: CD
     displayName: Continuous Deployment
     dependsOn: CI
-    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
+    #condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
     jobs:
       - deployment: Deploy
         displayName: Deploy to QA env
