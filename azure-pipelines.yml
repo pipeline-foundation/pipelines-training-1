@@ -74,7 +74,6 @@ stages:
     jobs: 
       - deployment: Production
         displayName: Deploy to Production env
-        dependsOn: QA
         pool:
           vmImage: ubuntu-latest
         environment: singlet-sample-app-Prod
