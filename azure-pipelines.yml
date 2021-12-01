@@ -44,21 +44,13 @@ stages:
               targetPath: '$(Build.ArtifactStagingDirectory)'
               artifact: 'drop'
               publishLocation: 'pipeline'
-          
-          - task: DotNetCoreCLI@2
-            displayName: 'Publish NuGet to Internal feed'
-            inputs:
-              command: 'push'
-              packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
-              nuGetFeedType: 'internal'
-              publishVstsFeed: '0f18b7db-fb6c-46c5-b364-4584de3e42e4/624b3892-88df-430d-a184-f05c92de3644'
   
   - stage: CD
     displayName: Continuous Deployment
     dependsOn: CI
     #condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
     jobs:
-      - deployment: Deploy
+      - deployment: QA
         displayName: Deploy to QA env
         pool:
           vmImage: ubuntu-latest
@@ -67,5 +59,28 @@ stages:
          runOnce:
            deploy:
              steps:
-               - pwsh: ls $(Pipeline.Workspace) -R
-                 displayName: List Pipeline.Workspace contents
+               - task: DotNetCoreCLI@2
+                 displayName: Publish NuGet pkg to QA feed
+                 inputs:
+                   command: 'push'
+                   packagesToPush: '$(Pipeline.Workspace)/drop/*.nupkg'
+                   nuGetFeedType: 'internal'
+                   publishVstsFeed: '0f18b7db-fb6c-46c5-b364-4584de3e42e4/624b3892-88df-430d-a184-f05c92de3644'
+      #.....................
+      - deployment: Production
+        displayName: Deploy to Production env
+        dependsOn: QA
+        pool:
+          vmImage: ubuntu-latest
+        environment: singlet-sample-app-Prod
+        strategy:
+         runOnce:
+           deploy:
+             steps:
+               - task: DotNetCoreCLI@2
+                 displayName: Publish NuGet pkg to Nuget.org
+                 inputs:
+                   command: 'push'
+                   packagesToPush: '$(Pipeline.Workspace)/drop/*.nupkg'
+                   nuGetFeedType: 'external'
+                   publishFeedCredentials: 'NuGet.org-Ross'
