@@ -45,8 +45,8 @@ stages:
               artifact: 'drop'
               publishLocation: 'pipeline'
   
-  - stage: CD
-    displayName: Continuous Deployment
+  - stage: CD_QA
+    displayName: QA
     dependsOn: CI
     #condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
     jobs:
@@ -67,6 +67,11 @@ stages:
                    nuGetFeedType: 'internal'
                    publishVstsFeed: '0f18b7db-fb6c-46c5-b364-4584de3e42e4/624b3892-88df-430d-a184-f05c92de3644'
       #.....................
+  - stage: CD_Prod
+    displayName: Production
+    dependsOn: CD_QA
+    #condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
+    jobs: 
       - deployment: Production
         displayName: Deploy to Production env
         dependsOn: QA
